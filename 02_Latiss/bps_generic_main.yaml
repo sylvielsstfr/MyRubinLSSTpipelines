@@ -1,0 +1,15 @@
+wmsServiceClass: lsst.ctrl.bps.htcondor.HTCondorService
+requestCpus: 1  # CPUs to use per quantum
+site:
+  s3df:
+    profile:
+      condor:
+        +Walltime: 7200
+
+memoryMultiplier: 2.0
+numberOfRetries: 2
+memoryLimit: 470000
+
+includeConfigs:
+- ${DRP_PIPE_DIR}/bps/clustering/LSSTCam/DRP-clustering.yaml
+- ${DRP_PIPE_DIR}/bps/resources/LSSTCam/DRP.yaml
