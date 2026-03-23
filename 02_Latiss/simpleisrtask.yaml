@@ -1,0 +1,46 @@
+description: Simple fabrication of images
+instrument: lsst.obs.lsst.Latiss
+tasks:
+  isr:
+    class: lsst.ip.isr.IsrTaskLSST
+    config:
+      # characterize performance when turning on darks as first attempt found it
+      # to degrade performance (possibly due to bad darks, but take care here)
+      doDark: False
+      doFlat: False
+      doDefect: True
+      doLinearize: False
+      doCrosstalk: False
+      doBias: True
+      # new
+      doApplyGains: False
+#    class: lsst.ip.isr.IsrTask
+#    config:
+      # characterize performance when turning on darks as first attempt found it
+      # to degrade performance (possibly due to bad darks, but take care here)
+#      doDark: False
+#      doFlat: False
+#      doFringe: False
+#      doDefect: True
+#      doLinearize: False
+#      doCrosstalk: False
+#      doSaturationInterpolation: True
+#      overscan.fitType: 'MEDIAN_PER_ROW'
+#      doBias: True
+      # new
+#      doApplyGains: False
+#      usePtcGains: True
+  characterizeImage:
+    class: lsst.pipe.tasks.characterizeImage.CharacterizeImageTask
+    config:
+      repair.doCosmicRay: True
+      doApCorr: False
+      doMeasurePsf: False
+      detection.includeThresholdMultiplier: 3
+      doMaskStreaks: False
+      doNormalizedCalibration: False
+      # assess carefully whether turning on cosmic ray repair hurts performance
+      python : |
+        # if we turn PSF measurement on re-enable this plugin
+        config.measurement.plugins.names = set(config.measurement.plugins.names) -       set(('base_ClassificationSizeExtendedness',))
+      
