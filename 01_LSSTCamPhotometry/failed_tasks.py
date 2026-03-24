@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import numpy as np
+import glob
+
+def extract_failures(job_dir):
+    # read log files
+    process = "processStar"
+    logdir = os.path.join(job_dir, 'jobs')
+    list_all_logs = os.listdir(logdir)
+    list_process_err = [ log for log in list_all_logs if process in log and '.err' in log ]
+    list_process_err = glob.glob(os.path.expanduser(os.path.join(logdir, process, '*/*.out')))
+    list_process_err += glob.glob(os.path.expanduser(os.path.join(logdir, process, '*/*.err')))
+    log_id=''
+    exec_list=[]
+    except_list=[]
+    obs_num_list=[]
+    h, t = os.path.split(job_dir)
+    hh, th = os.path.split(h)
+    run_id=f'{th}-{t}'
+    file_out=f'tracebacks_{process}_{run_id}.txt'
+    with open(file_out, 'w') as res:
+        res.write(f'Identification of {process} failures for job {run_id}')
+    num_failed=0
+    for log in list_process_err:
+        #print(log)
+        info_lines=[]
+        error_lines=[]
+        old_log_id = log_id
+        log_id=f'{process}-{(log.split(".")[0]).split("_")[-2]}'
+        num_obs = log.split('/')[-2]
+        with open(os.path.join(logdir,log)) as f:
+            lines = f.readlines()
+            prev_line=''
+            loc=-1
+            deb_traceback, end_traceback = 0, 0
+            traceback=''
+            exception=''
+            is_error = False
+            for line in lines:
+                #if is_error:
+                #    break
+                loc+=1
+                deb_line=line.split(' ')[0]
+                if deb_line == "INFO" : info_lines.append(line)
+                elif deb_line == "ERROR" :
+                    error_lines.append(line)
+                    is_error = True
+                    if f"Execution of task '{process}'" in line and 'failed' in line:
+                        sentences = line.split('. ')
+                        exception = (sentences[-1].split('Exception '))[-1]
+                        #print(log, exception)
+                        #print(line)
+                elif deb_line == 'Traceback' :
+                    deb_traceback=loc
+                    #print(f'{deb_traceback} > {line}')
+                if 'task' in line.lower() and (f'label={process}' in line or f'{process}' in line) and 'failed' in line:
+                    #print("go", line)
+                    #elif exception != '' and line == exception :
+                    if "matmul" in exception:
+                        _excep = exception.split()
+                        _excep[-5] = '[dim1]'
+                        _excep[-1] = '[dim2])\n'
+                        exception = ' '.join(_excep)
+                    old_traceback = traceback
+                    traceback=''
+                    end_traceback = loc
+                    #print(f'{end_traceback} > {line}')
+                    for l in lines[deb_traceback:end_traceback+1]:
+                        traceback=traceback+'\t'+l
+                    if traceback != old_traceback:
+                        num_failed+=1
+                        exec_list.append(log_id)
+                        except_list.append(exception)
+                        obs_num_list.append(num_obs)
+                        with open(file_out, 'a') as res:
+                            res.write(f'\n{log_id}:\n{traceback}')
+
+
+    with open(file_out, 'a') as res:
+        res.write(f'\n\nNumber of identified failures in {process} = {num_failed}')
+    '''
+    with open(file_out, 'r') as res:
+        print(res.read())
+    '''
+    return exec_list, except_list, obs_num_list
+    
+# input arg check
+try:
+    jobdir = os.path.abspath(os.path.join(sys.argv[1],'.'))
+except IndexError:
+    print('Usage: python failed_tasks.py [jobdir]')
+    raise SystemExit
+    
+if os.path.isdir(jobdir):
+    execs, excepts, nums = extract_failures(jobdir)
+    #print(execs)
+    print('Identified errors during this run:')
+    d = {}
+    for err in set(excepts) :
+        err_nums = []
+        for (exc, num) in zip(excepts, nums):
+            if exc == err : err_nums.append(num)
+        err_nums = np.sort(list(set(err_nums)))
+        d[f'\t{len(err_nums)} {err[:-1]}'] = err_nums 
+        #print(f'\t{len(err_nums)} {err[:-1]} for obs. {err_nums}')
+    for k in sorted(d, key=lambda k: len(d[k]), reverse=False):
+        print(f'\t{k} for obs. {d[k]}\n')
+else:
+    raise FileNotFoundError(f"input path not found: '{jobdir}'")
