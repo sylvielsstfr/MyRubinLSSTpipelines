@@ -13,6 +13,6 @@
 bps submit bps_generic_main.yaml \
     -b /repo/main \
     -i LSSTCam/defaults \
-    -o u/dagoret/test_runbps_2026_test_lc_fromalertsFink_v0 \
+    -o u/dagoret/test_runbps_2026_test_lc_fromalertsFink_v1 \
     -p ${DRP_PIPE_DIR}/pipelines/LSSTCam/DRP.yaml#stage1-single-visit,stage2-recalibrate \
     -d "instrument='LSSTCam' AND skymap='lsst_cells_v2' AND visit IN (2026021600106, 2026021800057, 2026021800059, 2026021800061) AND detector IN (50, 53, 57, 60)"
