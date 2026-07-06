@@ -6,11 +6,11 @@
 
 
 #visitids=$(paste -sd, visitIds_short.txt)
-visitids=$(paste -sd, visitIds.txt)
+visitids=$(paste -sd, visitIds_short.txt)
 
 bps submit bps_generic_main.yaml \
     -b /repo/main \
     -i LATISS/raw/all,refcats,LATISS/calib/legacy,LATISS/calib \
-    -o u/dagoret/2026_test_isrlatiss_v1 \
+    -o u/dagoret/2026_07_06_isrlatiss_v1 \
     -p simpleisrtask.yaml \
     -d "instrument='LATISS' AND exposure IN (${visitids})"
