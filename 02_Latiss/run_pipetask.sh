@@ -7,11 +7,11 @@
 # Note before I better had allocated machine for an interactive run:
 #srun --pty --cpus-per-task=4 --mem=16GB --nodes=1 --time=02:00:00 --partition=milano --account=rubin:commissioning bash
 
-visitids=$(paste -sd, visitIds_short.txt)
+visitids=$(paste -sd, visitIds_short-2026-07-06.txt)
 
 pipetask run -b /repo/main \
     -i LATISS/raw/all,refcats,LATISS/calib/legacy,LATISS/calib \
-    -o u/dagoret/2026_test_isrlatiss_v0 \
+    -o u/dagoret/2026_07__06_isrlatiss_v0 \
     -p ${DRP_PIPE_DIR}/pipelines/LATISS/DRP.yaml#step1 \
     -c isr:doFlat=False \
     -d "instrument='LATISS' AND exposure IN (${visitids})"
