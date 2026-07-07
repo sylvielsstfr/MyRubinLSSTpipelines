@@ -2,7 +2,8 @@
 
 - author : Sylvie Dagoret-Campagne
 - creation date : 2026-03-23
-
+- last update : 2026-07-07
+  
 ## Initialize Rubin pipeline
 
 >    source /sdf/group/rubin/sw/w_latest/loadLSST.sh
